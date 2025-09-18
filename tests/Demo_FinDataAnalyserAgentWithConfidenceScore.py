@@ -10,7 +10,7 @@ def main():
         agent = FinDataAnalyserAgentWithConfidenceScore(model_name= "llama3.1", runs=5)
         result = agent.run("tests/Test_Fin_Doc.md")
         print("Demo Result (FinDataAnalyserAgentWithConfidenceScore):\n\n")
-        print(f"output: {result['output']}\n\n")
+        print(f"output: \n{result['output']}\n\n")
         print(f"margins: {result['margins']}\n\n")
         print(f"confidence_score: {result['confidence_score']}")
 

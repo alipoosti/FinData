@@ -1,64 +1,163 @@
-# Verification of FinData - Phase 1 Plan
+# FinData Verification and AI Agents
 
-This repository documents the first phase plan to test and verify FinData data processed by LLMs. It focuses on building a mock AI agent that reads a FinDoc text and performs a simple calculation using data from the doc. The agent runs locally with LangChain and Ollama models.
+A small project to verify and improve numeric reliability in LLM-driven analysis of financial documents.
 
-## Goals
+## ⚠️ Problem
 
-- Create a self-contained README based plan with test Fin Doc data
-- Provide a skeleton of Python modules for AI agents that use a local Ollama model
-- Define a fixed system prompt based agent that outputs a paragraph including a calculated number
-- Provide an end-to-end test harness concept for repeated runs and variance detection
-- Add a utility function for profit margin calculation for later validation phases
+LLMs often miscalculate or misreport numbers in financial contexts (for example, revenue, net income, or margins), producing confident but incorrect figures.
 
-## Test Fin Doc (mock)
+## 🧩 Approaches
 
-- Below is a sample Fin Doc that the agent will read. It is included as a snippet in this README for simplicity.
+- Approach 1 — Repetition with confidence scoring
+  - Run the same task multiple times and report an aggregate answer with a confidence score.
+  - Useful to gauge reliability; may still require human review for high-stakes use.
+- Approach 2 — Extract-then-calculate using external utilities
+  - Use extractor LLM agents to pull the required numbers, then compute with verified Python utilities.
+  - Reduces hallucination risk and improves traceability and repeatability.
+
+## 🏗️ Architecture overview
+
+Core agents and utilities:
+- [`AI_Agents/fin_data_analyser_agent.py`](AI_Agents/fin_data_analyser_agent.py:1) — agent to read FinDoc and surface needed values.
+- [`AI_Agents/fin_data_analyser_agent_with_confidence_score.py`](AI_Agents/fin_data_analyser_agent_with_confidence_score.py:1) — repetition strategy with confidence score.
+- [`AI_Agents/fin_data_summarizer.py`](AI_Agents/fin_data_summarizer.py:1) — final report/summary generation based on approach 2.
+- [`AI_Agents/ai_agent_base.py`](AI_Agents/ai_agent_base.py:1) — shared base wrapper over LangChain + Ollama.
+- [`utils/utility.py`](utils/utility.py:1) — numeric utilities (for example, profit margin).
+
+## 📁 Repository structure
+
+```txt
+|- FinData/                          # repository root
+|-- README.md
+|-- requirements.txt
+|-- AI_Agents/
+|   |-- __init__.py
+|   |-- ai_agent_base.py
+|   |-- fin_data_analyser_agent.py
+|   |-- fin_data_analyser_agent_with_confidence_score.py
+|   |-- fin_data_summarizer.py
+|-- utils/
+|   |-- __init__.py
+|   |-- utility.py
+|-- tests/
+|   |-- __init__.py
+|   |-- Test_Fin_Doc.md
+|   |-- Demo_Naive.py
+|   |-- Demo_FinDataAnalyserAgentWithConfidenceScore.py
+|   |-- Demo_FinDataSummarizer.py
+```
+
+## 🚀 Quick start
+
+1) Create and activate a virtual environment
+
+```bash
+# Create venv (macOS/Linux)
+python3 -m venv .venv
+# Activate
+source .venv/bin/activate
+# Upgrade pip
+python -m pip install --upgrade pip
+```
+
+2) Install project requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+3) Ensure Ollama is running with a supported model
+
+- Install and start Ollama: https://ollama.com
+- Pull a local model (for example, llama3.2) and ensure it’s available.
+
+## 🧪 Demos: how to run
+
+From the repository root after activating the venv:
+
+```bash
+python tests/Demo_Naive.py
+python tests/Demo_FinDataAnalyserAgentWithConfidenceScore.py
+python tests/Demo_FinDataSummarizer.py
+```
+
+Input document used in demos:
+- [`tests/Test_Fin_Doc.md`](tests/Test_Fin_Doc.md:1)
 
 ```txt
 Company: MockTech
 Year: 2024
-Revenue: 1500000
-NetIncome: 300000
+Revenue: 1567000
+NetIncome: 398000
 Employees: 50
 ```
 
-- Simple calculation: Profit Margin = (NetIncome / Revenue) * 100
+The real Profit Margin for this company would be `398000/1567000 = 0.253989`
 
-- Expected result in the paragraph: roughly 20.0%
+- Example output of the naive agent (using llama3.1)
 
-## AI Agent architecture (high level)
+  ```txt
+  **Financial Analysis Report**
 
-- `ai_agent_base.py`: Base AI agent class using LangChain Ollama LLM (default model llama3.2). It takes a system prompt and an input prompt string, calls the Ollama model, and returns the output.
-- `fin_data_analysor_agent.py`: `FinDataAnalysorAgent` reads a financial document text file, uses a fixed system prompt explaining the task and formula, and calls the base agent with the entire document text as input. It returns the output paragraph. No NLP or regex extraction is done here (reserved for later phases).
-- `utility.py`: Contains a simple utility function `calculate_profit_margin(net_income, revenue)` that returns the profit margin percentage. This will be used in later phases for validation.
+  Based on the provided financial document for MockTech in 2024, I have extracted the relevant numbers and computed the profit margin.
 
-## Testing
+  Relevant Numbers:
+  - Revenue: $1,567,000
+  - Net Income: $398,000
+  - Employees: 50 (not directly used in calculation)
 
-- `Test_Naive.py`: A simple test script that instantiates the `FinDataAnalysorAgent` and runs it on the sample `Test_Fin_Doc.md` file to verify it executes without errors and produces output.
+  Using the formula: Profit Margin = (NetIncome / Revenue) * 100
 
-## How to run
+  Profit Margin Calculation:
+  = ($398,000 / $1,567,000) * 100
+  = 0.2545 * 100
+  ≈ 25.45%
 
-1. Ensure Ollama is installed and running locally with the llama3.2 model.
-2. Run `Test_Naive.py` to verify the agent runs and produces output.
-3. Extend or modify the financial document and observe the agent's output paragraph.
+  **Conclusion**
+  MockTech's profit margin for the year 2024 is approximately 25.45%. This indicates a relatively healthy profitability level, suggesting that MockTech has managed its costs effectively and maintained a strong revenue stream in 2024.
+  ```
 
-## Next steps (overview)
+- Example output of the naive agent (using llama3.2)
 
-1. Implement multiple runs of the agent to collect output variance and confidence scores.
-2. Use NLP and regex techniques to extract numbers from the document, perform math in Python using the utility function, and pass the calculated number to a second agent for paragraph generation.
-3. Extend test data and measure error magnitudes and detection.
+  ```txt
+  Based on the financial document provided for MockTech in 2024, I extracted the relevant numbers:
 
-## Setup and prerequisites
+  - Revenue: $1,567,000
+  - Net Income: $398,000
 
-- macOS with Ollama installed
-- Python 3.8+
-- LangChain installed (`%pip install -qU langchain-ollama`)
-- Ollama server running locally and accessible by LangChain
-- Local LLM model installed in Ollama (e.g., llama3.2)
+  Using the formula for profit margin, I calculated it as follows:
 
-## File overview
+  Profit Margin = (NetIncome / Revenue) * 100
+  = ($398,000 / $1,567,000) * 100
+  = 25.38%
 
-- `ai_agent_base.py`: Base AI agent class wrapping LangChain Ollama calls.
-- `fin_data_analysor_agent.py`: Fixed prompt agent reading Fin Doc and calling base agent.
-- `utility.py`: Simple profit margin calculation utility function.
-- `Test_Naive.py`: Basic test script to run the FinDataAnalysorAgent on sample data.
+  Therefore, MockTech's profit margin in 2024 is approximately 25.38%.
+  ```
+
+
+
+## 🧰 Key modules
+
+- [`AI_Agents/ai_agent_base.py`](AI_Agents/ai_agent_base.py:1) — base LLM integration used by all agents.
+- [`AI_Agents/fin_data_analyser_agent.py`](AI_Agents/fin_data_analyser_agent.py:1) — main LLM agent for the naive approach.
+- [`AI_Agents/fin_data_analyser_agent_with_confidence_score.py`](AI_Agents/fin_data_analyser_agent_with_confidence_score.py:1) — repetition + confidence.
+- [`AI_Agents/fin_data_summarizer.py`](AI_Agents/fin_data_summarizer.py:1) — summary/report generation using approach 2.
+- [`utils/utility.py`](utils/utility.py:1) — math helpers used to compute verified values.
+
+## 🧱 Test artifacts
+
+- [`tests/Demo_Naive.py`](tests/Demo_Naive.py:1)
+- [`tests/Demo_FinDataAnalyserAgentWithConfidenceScore.py`](tests/Demo_FinDataAnalyserAgentWithConfidenceScore.py:1)
+- [`tests/Demo_FinDataSummarizer.py`](tests/Demo_FinDataSummarizer.py:1)
+- [`tests/Test_Fin_Doc.md`](tests/Test_Fin_Doc.md:1)
+
+## 🔧 Extending
+
+- Add additional FinDoc samples under tests and point demos to them.
+- Add new calculators in [`utils/utility.py`](utils/utility.py:1) and wire them into the agents.
+- Expand tests and capture outputs in the Example outputs section above.
+
+## 📝 Notes
+
+- Using larger models will reduce the change of miscalculations.
+- For production use, prefer the extract-then-calculate approach for numerical reliability.
