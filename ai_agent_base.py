@@ -31,5 +31,12 @@ class BaseAIAgent:
             ("system", self.system_prompt),
             ("human", input_prompt),
         ]
-        ai_msg = self.llm.invoke(messages)
+        try:
+            ai_msg = self.llm.invoke(messages)
+        except Exception as e:
+            # Handle model not found error gracefully
+            if 'model' in str(e).lower() and 'not found' in str(e).lower():
+                raise RuntimeError(f"Model '{self.model_name}' not found on the system. Please pull the model first.") from e
+            else:
+                raise
         return ai_msg.content

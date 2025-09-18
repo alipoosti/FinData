@@ -1,0 +1,102 @@
+from typing import List, Dict, Any
+import re
+import subprocess
+import math
+import statistics
+
+from ai_agent_base import BaseAIAgent
+from fin_data_analysor_agent import FinDataAnalysorAgent
+
+def clear_ollama_cache() -> None:
+    """
+    Attempt to clear Ollama-related caches to force fresh runs.
+    Not all environments expose a cache clear; best-effort approach.
+    """
+    try:
+        cmds = [
+            ["ollama", "prune", "--cache"],
+            ["ollama", "cache", "prune"],
+        ]
+        for cmd in cmds:
+            subprocess.run(cmd, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        # If Ollama CLI isn't available, swallow the error and continue.
+        pass
+
+class ProfitMarginExtractorAgent(BaseAIAgent):
+    """
+    Extracts the Profit Margin float from the output text produced by FinDataAnalysorAgent.
+    Inherits from BaseAIAgent and returns a float.
+    """
+    def __init__(self, model_name: str = "llama3.2") -> None:
+        system_prompt = (
+            "You are a precise data extractor. From the provided text, extract the numeric profit margin "
+            "as a floating point value. Return only the number (e.g., 12.5)."
+        )
+        super().__init__(system_prompt=system_prompt, model_name=model_name)
+
+    def run(self, input_text: str) -> float:
+        """
+        Run the extraction using the base agent and parse a float from the output.
+        """
+        output = super().run(input_text)
+        # First try to find a label like "Profit Margin: 12.34" or "Profit Margin = 12.34"
+        m = re.search(r"Profit Margin\s*[:=]?\s*(-?\d+(?:\.\d+)?)", output, re.IGNORECASE)
+        if m:
+            return float(m.group(1))
+
+        # Fallback: extract the first numeric value from the output
+        nums = re.findall(r"-?\d+(?:\.\d+)?", output)
+        if nums:
+            return float(nums[0])
+
+        raise ValueError("Could not extract profit margin from extractor output.")
+
+class FinDataAnalysorAgentWithConfidenceScore:
+    """
+    Runs FinDataAnalysorAgent multiple times, extracts profit margins, and computes a confidence score.
+    The final return is a dict containing:
+      - output: the last FinDataAnalysorAgent output
+      - margins: list of extracted margins (floats or NaN)
+      - confidence_score: a float in [0,1] representing confidence
+    """
+    def __init__(self, model_name: str = "llama3.2", runs: int = 5) -> None:
+        self.model_name = model_name
+        self.runs = max(1, int(runs))
+
+    def run(self, fin_doc_path: str) -> Dict[str, Any]:
+        outputs: List[str] = []
+        # Execute FinDataAnalysorAgent multiple times, clearing Ollama cache between runs
+        for _ in range(self.runs):
+            agent = FinDataAnalysorAgent(model_name=self.model_name)
+            try:
+                out = agent.run(fin_doc_path)
+            except Exception:
+                out = ""
+            outputs.append(out)
+            clear_ollama_cache()
+
+        extractor = ProfitMarginExtractorAgent(model_name=self.model_name)
+        margins: List[float] = []
+        for out in outputs:
+            try:
+                margin = extractor.run(out)
+            except Exception:
+                margin = float("nan")
+            margins.append(margin)
+
+        # Compute confidence score using variance of valid margins
+        valid_margins = [m for m in margins if isinstance(m, float) and not math.isnan(m)]
+        if len(valid_margins) > 1:
+            var = statistics.variance(valid_margins)
+        else:
+            var = 0.0
+
+        confidence_score = 1.0 if var == 0.0 else 1.0 / (1.0 + var)
+
+        last_output = outputs[-1] if outputs else ""
+        return {
+            "output": last_output,
+            "margins": margins,
+            "confidence_score": float(confidence_score),
+        }
