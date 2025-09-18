@@ -7,22 +7,6 @@ import statistics
 from .ai_agent_base import BaseAIAgent
 from .fin_data_analyser_agent import FinDataAnalyserAgent
 
-def clear_ollama_cache() -> None:
-    """
-    Attempt to clear Ollama-related caches to force fresh runs.
-    Not all environments expose a cache clear; best-effort approach.
-    """
-    try:
-        cmds = [
-            ["ollama", "prune", "--cache"],
-            ["ollama", "cache", "prune"],
-        ]
-        for cmd in cmds:
-            subprocess.run(cmd, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except Exception:
-        # If Ollama CLI isn't available, swallow the error and continue.
-        pass
-
 class ProfitMarginExtractorAgent(BaseAIAgent):
     """
     Extracts the Profit Margin float from the output text produced by FinDataAnalyserAgent.
@@ -74,7 +58,6 @@ class FinDataAnalyserAgentWithConfidenceScore:
             except Exception:
                 out = ""
             outputs.append(out)
-            clear_ollama_cache()
 
         extractor = ProfitMarginExtractorAgent(model_name=self.model_name)
         margins: List[float] = []

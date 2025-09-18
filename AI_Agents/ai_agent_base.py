@@ -13,7 +13,7 @@ class BaseAIAgent:
     def __init__(self, system_prompt: str, model_name: str = "llama3.2") -> None:
         self.model_name = model_name
         self.system_prompt = system_prompt
-        self.llm = OllamaLLM(model=self.model_name, temperature=0)
+        self.llm = OllamaLLM(model=self.model_name, temperature=0, cache=False)
 
     def run(self, input_prompt: str) -> str:
         """
