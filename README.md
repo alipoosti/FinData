@@ -134,6 +134,50 @@ The real Profit Margin for this company would be `398000/1567000 = 0.253989`
   Therefore, MockTech's profit margin in 2024 is approximately 25.38%.
   ```
 
+- Example output of the FinDataAnalyserAgentWithConfidenceScore agent (using llama3.1)
+
+  ```txt
+  output: 
+  **Financial Analysis Report**
+
+  Based on the provided financial document for MockTech in 2024, I have extracted the relevant numbers:
+
+  * Revenue: $1,567,000
+  * Net Income: $398,000
+  * Employees: 50 (not directly used in profit margin calculation)
+
+  Using the formula: Profit Margin = (NetIncome / Revenue) * 100
+
+  Profit Margin = ($398,000 / $1,567,000) * 100 ≈ **25.4%**
+
+  In conclusion, MockTech's profit margin for 2024 is approximately 25.4%, indicating a relatively healthy financial performance.
+
+
+  margins: [25.43, 25.46, 25.45, 25.43, 25.4]
+
+
+  confidence_score: 0.9994702807512017
+  ```
+
+- Example output of the FinDataSummarizerAgent agent (using llama3.1)
+
+  ```txt
+  **MockTech Financial Summary (2024)**
+
+  Based on the provided financial data, here is a concise summary of MockTech:
+
+  * **Revenue Growth**: MockTech generated $1.567 million in revenue for the year 2024, indicating a stable and modest growth trajectory.
+  * **Profitability**: The company reported a net income of $398,000, representing a profit margin of approximately 25%. This suggests that MockTech has a relatively healthy financial position.
+  * **Operational Efficiency**: With only 50 employees, MockTech maintains a lean organizational structure, which may contribute to its ability to manage costs and maintain profitability.
+  * **Financial Health**: The company's net income and revenue growth indicate a stable financial foundation. However, further analysis would be required to assess the company's overall financial health, including debt levels, cash flow, and other key metrics.
+
+  Overall, MockTech appears to be a financially stable and moderately growing company with a strong focus on operational efficiency.
+
+  **Profit Margin** 
+  Given the net income and revenue of the company the Profit Margin is calculated at: 25.399%.
+  This metric shows how efficiently the company converts revenue into profit, representing net income as a percentage of revenue.
+  ```
+
 
 
 ## 🧰 Key modules
@@ -156,8 +200,10 @@ The real Profit Margin for this company would be `398000/1567000 = 0.253989`
 - Add additional FinDoc samples under tests and point demos to them.
 - Add new calculators in [`utils/utility.py`](utils/utility.py:1) and wire them into the agents.
 - Expand tests and capture outputs in the Example outputs section above.
+- Use better confidence score metrics.
 
 ## 📝 Notes
 
 - Using larger models will reduce the change of miscalculations.
+- With approach 1, there is always a risk that LLM generates wrong outputs almost every time and then confidence score would be *misleadingly* high.
 - For production use, prefer the extract-then-calculate approach for numerical reliability.
