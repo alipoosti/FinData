@@ -10,10 +10,10 @@ class BaseAIAgent:
         system_prompt (str): System prompt string to guide the LLM.
     """
 
-    def __init__(self, system_prompt: str, model_name: str = "llama3.2") -> None:
+    def __init__(self, system_prompt: str, model_name: str = "llama3.2", temp = 0.2) -> None:
         self.model_name = model_name
         self.system_prompt = system_prompt
-        self.llm = OllamaLLM(model=self.model_name, temperature=0, cache=False)
+        self.llm = OllamaLLM(model=self.model_name, temperature=temp, cache=False)
 
     def run(self, input_prompt: str) -> str:
         """

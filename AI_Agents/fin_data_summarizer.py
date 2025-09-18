@@ -9,7 +9,7 @@ class NetIncomeExtractorAgent:
             "output only the Net Income value reported in the document. Output should be a number with no currency "
             "symbol or extra text."
         )
-        self.base_agent = BaseAIAgent(system_prompt=self.system_prompt, model_name=model_name)
+        self.base_agent = BaseAIAgent(system_prompt=self.system_prompt, model_name=model_name, temp=0)
 
     def run(self, text: str) -> float:
         output = self.base_agent.run(text)
@@ -37,7 +37,7 @@ class RevenueExtractorAgent:
             "output only the Revenue value reported in the document. Output should be a number with no currency "
             "symbol or extra text."
         )
-        self.base_agent = BaseAIAgent(system_prompt=self.system_prompt, model_name=model_name)
+        self.base_agent = BaseAIAgent(system_prompt=self.system_prompt, model_name=model_name, temp=0)
 
     def run(self, text: str) -> float:
         output = self.base_agent.run(text)

@@ -15,9 +15,9 @@ class ProfitMarginExtractorAgent(BaseAIAgent):
     def __init__(self, model_name: str = "llama3.2") -> None:
         system_prompt = (
             "You are a precise data extractor. From the provided text, extract the numeric profit margin "
-            "as a floating point value. Return only the number (e.g., 12.5)."
+            "as a percentage value in the range of [0, 100]. Return only the number, without the percentage sign."
         )
-        super().__init__(system_prompt=system_prompt, model_name=model_name)
+        super().__init__(system_prompt=system_prompt, model_name=model_name, temp=0)
 
     def run(self, input_text: str) -> float:
         """
