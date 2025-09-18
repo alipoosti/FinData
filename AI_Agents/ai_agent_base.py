@@ -1,6 +1,5 @@
 from typing import Optional
-from langchain_ollama import ChatOllama
-
+from langchain_ollama import ChatOllama, OllamaLLM
 
 class BaseAIAgent:
     """
@@ -14,7 +13,7 @@ class BaseAIAgent:
     def __init__(self, system_prompt: str, model_name: str = "llama3.2") -> None:
         self.model_name = model_name
         self.system_prompt = system_prompt
-        self.llm = ChatOllama(model=self.model_name, temperature=0)
+        self.llm = OllamaLLM(model=self.model_name, temperature=0)
 
     def run(self, input_prompt: str) -> str:
         """
@@ -31,12 +30,5 @@ class BaseAIAgent:
             ("system", self.system_prompt),
             ("human", input_prompt),
         ]
-        try:
-            ai_msg = self.llm.invoke(messages)
-        except Exception as e:
-            # Handle model not found error gracefully
-            if 'model' in str(e).lower() and 'not found' in str(e).lower():
-                raise RuntimeError(f"Model '{self.model_name}' not found on the system. Please pull the model first.") from e
-            else:
-                raise
-        return ai_msg.content
+        ai_msg = self.llm.invoke(messages)
+        return ai_msg

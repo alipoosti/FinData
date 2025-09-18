@@ -4,8 +4,8 @@ import subprocess
 import math
 import statistics
 
-from ai_agent_base import BaseAIAgent
-from fin_data_analysor_agent import FinDataAnalysorAgent
+from .ai_agent_base import BaseAIAgent
+from .fin_data_analyser_agent import FinDataAnalyserAgent
 
 def clear_ollama_cache() -> None:
     """
@@ -25,7 +25,7 @@ def clear_ollama_cache() -> None:
 
 class ProfitMarginExtractorAgent(BaseAIAgent):
     """
-    Extracts the Profit Margin float from the output text produced by FinDataAnalysorAgent.
+    Extracts the Profit Margin float from the output text produced by FinDataAnalyserAgent.
     Inherits from BaseAIAgent and returns a float.
     """
     def __init__(self, model_name: str = "llama3.2") -> None:
@@ -52,11 +52,11 @@ class ProfitMarginExtractorAgent(BaseAIAgent):
 
         raise ValueError("Could not extract profit margin from extractor output.")
 
-class FinDataAnalysorAgentWithConfidenceScore:
+class FinDataAnalyserAgentWithConfidenceScore:
     """
-    Runs FinDataAnalysorAgent multiple times, extracts profit margins, and computes a confidence score.
+    Runs FinDataAnalyserAgent multiple times, extracts profit margins, and computes a confidence score.
     The final return is a dict containing:
-      - output: the last FinDataAnalysorAgent output
+      - output: the last FinDataAnalyserAgent output
       - margins: list of extracted margins (floats or NaN)
       - confidence_score: a float in [0,1] representing confidence
     """
@@ -66,9 +66,9 @@ class FinDataAnalysorAgentWithConfidenceScore:
 
     def run(self, fin_doc_path: str) -> Dict[str, Any]:
         outputs: List[str] = []
-        # Execute FinDataAnalysorAgent multiple times, clearing Ollama cache between runs
+        # Execute FinDataAnalyserAgent multiple times, clearing Ollama cache between runs
         for _ in range(self.runs):
-            agent = FinDataAnalysorAgent(model_name=self.model_name)
+            agent = FinDataAnalyserAgent(model_name=self.model_name)
             try:
                 out = agent.run(fin_doc_path)
             except Exception:

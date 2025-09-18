@@ -1,7 +1,7 @@
-from ai_agent_base import BaseAIAgent
+from .ai_agent_base import BaseAIAgent
 
 
-class FinDataAnalysorAgent:
+class FinDataAnalyserAgent:
     """
     AI agent that reads a financial document text file and uses a fixed system prompt
     to instruct the base agent to perform a calculation and output an analysis paragraph.

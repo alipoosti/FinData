@@ -1,11 +1,14 @@
 import re
-import importlib
+import sys
+import os
 
 # Demo approach: monkeypatch internal classes to avoid needing external LLMs.
 
-import FinDataAnalysorAgentWithConfidenceScore as F
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Sequence of fake FinDataAnalysorAgent outputs (as if they came from 5 runs)
+import AI_Agents.fin_data_analyser_agent_with_confidence_score as F
+
+# Sequence of fake FinDataAnalyserAgent outputs (as if they came from 5 runs)
 fake_outputs = [
     "Profit Margin: 10.0",
     "Profit Margin: 12.0",
@@ -14,7 +17,7 @@ fake_outputs = [
     "Profit Margin: 10.5",
 ]
 
-class FakeFinDataAnalysorAgent:
+class FakeFinDataAnalyserAgent:
     def __init__(self, model_name="llama3.2"):
         pass
     def run(self, fin_doc_path: str) -> str:
@@ -30,11 +33,11 @@ class FakeProfitMarginExtractorAgent:
         return 0.0
 
 # Patch module globals so the higher-level agent uses the fake components
-F.FinDataAnalysorAgent = FakeFinDataAnalysorAgent
+F.FinDataAnalyserAgent = FakeFinDataAnalyserAgent
 F.ProfitMarginExtractorAgent = FakeProfitMarginExtractorAgent
 
 def main():
-    agent = F.FinDataAnalysorAgentWithConfidenceScore(runs=5)
+    agent = F.FinDataAnalyserAgentWithConfidenceScore(runs=5)
     result = agent.run("dummy_path")
     print("Result:", result)
 
